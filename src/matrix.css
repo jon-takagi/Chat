@@ -1,0 +1,101 @@
+/* BODY CSS */
+
+*{
+    -fx-font-family: Menlo, monospace;
+}
+
+BorderPane{
+    -fx-background-color: #101010;
+    -fx-min-width: 750;
+    -fx-max-width: 750;
+    -fx-min-height: 550;
+    -fx-max-height: 550;
+    -fx-spacing: 50;
+
+}
+
+VBox{
+
+    -fx-spacing: 50;
+    -fx-fill: #00FF00;
+
+}
+
+HBox{
+
+    -fx-spacing: 50;
+    -fx-fill: #00FF00;
+
+}
+
+
+Button{
+    -fx-border-color: #00FF00;
+    -fx-border-radius: 3;
+    -fx-spacing: 50;
+    -fx-fill: #00FF00;
+    -fx-background-color: #000000;
+    -fx-text-fill: #00FF00;
+
+}
+
+
+Text{
+    -fx-border-color: #00FF00;
+    -fx-border-radius: 3;
+    -fx-spacing: 50;
+    -fx-fill: #00FF00;
+    -fx-background-color: #000000;
+    -fx-text-fill: #00FF00;
+
+}
+
+TextField{
+
+    -fx-border-color: #00FF00;
+    -fx-border-radius: 3;
+    -fx-spacing: 50;
+    -fx-background-color: #000000;
+    -fx-text-fill: #00FF00;
+}
+TextArea{
+    -fx-border-color: #00FF00;
+    -fx-border-radius: 3;
+    -fx-spacing: 50;
+    -fx-background-color: #000000;
+    -fx-text-fill: #00FF00;
+}
+.text-area  .content{
+    -fx-highlight-fill: #00FF00;
+    -fx-highlight-text-fill: #000000;
+    -fx-text-fill: #00FF00;
+    -fx-background-color: #000000;
+}
+
+#getUserIdButton{
+    -fx-fill: #00FF00;
+}
+
+#getIpButton{
+    -fx-fill: #00FF00;
+}
+
+#sendButton{
+    -fx-fill: #00FF00;
+}
+
+#userIdField{
+    -fx-fill: #00FF00;
+}
+
+#outgoing{
+    -fx-fill: #00FF00;
+}
+
+#IpField{
+    -fx-fill: #00FF00;
+}
+
+#incoming{
+    -fx-fill: #00FF00;
+}
