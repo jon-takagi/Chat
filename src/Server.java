@@ -9,10 +9,7 @@
  * @author Jon
  */
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -21,6 +18,7 @@ import java.util.ArrayList;
 
 public class Server {
 
+    public static final int portNo = 42069;
     ArrayList<PrintWriter> clientOutputStreams;
 
     public class ClientHandler implements Runnable {
@@ -63,7 +61,12 @@ public class Server {
     public void go() {
         clientOutputStreams = new ArrayList<PrintWriter>();
         try {
-            ServerSocket serverSock = new ServerSocket(42069);
+            clientOutputStreams.add(new PrintWriter("myfile.txt"));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
+            ServerSocket serverSock = new ServerSocket(portNo);
             while (true) {
                 Socket clientSocket = serverSock.accept();
                 PrintWriter writer = new PrintWriter(clientSocket.getOutputStream());
@@ -79,10 +82,12 @@ public class Server {
     }
 
     public void tellEveryone(String message) {
+//        System.out.println("There are " + clientOutputStreams.size() + " clients online");
         for (int i = 0; i < clientOutputStreams.size(); i++) {
             try {
                 PrintWriter writer = clientOutputStreams.get(i);
                 writer.println(message);
+//                System.out.println(message);
                 writer.flush();
             } catch (Exception ex) {
 
