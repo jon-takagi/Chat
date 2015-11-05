@@ -13,8 +13,12 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Matcher;
@@ -41,8 +45,11 @@ public class ClientFX extends Application {
     private MenuItem serverOptions;
     private ListenTask lTask;
     private Timer timer;
-    VBox center;
-    HBox serverSettingsBox;
+    private VBox center;
+    private VBox usersPanel;
+    private HBox serverSettingsBox;
+    private ArrayList<Button> userButtons;
+    private ArrayList<String> users;
 
     @Override
     public void start(Stage primaryStage) {
@@ -62,17 +69,19 @@ public class ClientFX extends Application {
         IpField.setPrefColumnCount(15);
         alert = new Text("Enter room #");
         timer = new Timer();
-        initMenu();
         scene.getStylesheets().removeAll();
         scene.getStylesheets().setAll("matrix.css");
-
         lTask = new ListenTask();
         serverSettingsBox = new HBox(15, IpField, getIpButton, userIdField, getUserIdButton);
         center = new VBox(15);
+        usersPanel = new VBox();
+        userButtons = new ArrayList<>();
+        users = new ArrayList<>();
+        initMenu();
         center.getChildren().addAll(
                 menuBar,
                 serverSettingsBox,
-                incoming,
+                new HBox(incoming, usersPanel),
                 new HBox(15, outgoing, sendButton),
                 alert
         );
@@ -83,25 +92,17 @@ public class ClientFX extends Application {
         userIdField.setDisable(true);
         getUserIdButton.setDisable(true);
 
+        usersPanel.setDisable(true);
         setUIListeners();
         stage.show();
-//        authorizePort();
 
+        setUpNetworking();
 
     }
 
-//    private void authorizePort() {
-//        Runtime runtime = Runtime.getRuntime();
-//        String[] cmd = {"ssh", "-t", "-t", "127.0.0.1"};
-//        try {
-//            Process process = runtime.exec(cmd);
-//            ErrorGobbler errorGobbler = new ErrorGobbler(process.getErrorStream());
-//            errorGobbler.start();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
+    /**
+     * Initializes the menu and puts all the menus in their correct places.*
+     */
     private void initMenu() {
         cssMenu = new Menu("CSS Options");
         menuBar = new MenuBar();
@@ -121,6 +122,10 @@ public class ClientFX extends Application {
         menuBar.getMenus().addAll(fileMenu, cssMenu);
     }
 
+    /**
+     * Adds the correct listeners to all the UI objects
+     * When a button is clicked, this method makes it do stuff*
+     */
     private void setUIListeners() {
         serverOptions.setOnAction(event -> {
             getServerOptions();
@@ -196,22 +201,25 @@ public class ClientFX extends Application {
         });
     }
 
+    /**
+     * If a user wants to change their settings, this method brings back the options.*
+     */
     private void getServerOptions() {
         if (center.getChildren().get(1).equals(serverSettingsBox)) {
             return;
         }
         center.getChildren().add(1, serverSettingsBox);
-
         getIpButton.setDisable(false);
         IpField.setDisable(false);
         outgoing.setDisable(true);
         sendButton.setDisable(true);
         userIdField.setDisable(true);
         getUserIdButton.setDisable(true);
-
-
     }
 
+    /**
+     * This method retrieves the value stored in the IP field ("Room #") and makes sure it is valid*
+     */
     private void getIP() {
         if (IpField.getText() != null) {
             IP = IpField.getText();
@@ -230,29 +238,45 @@ public class ClientFX extends Application {
         }
     }
 
+    /**
+     * @param ip the IP to validate
+     * @return whether or not the IP is a valid address in the form XXX.XXX.XXX.XXX where X is an int 0 - 9
+     */
     private boolean validate(String ip) {
         Pattern pattern = Pattern.compile(PATTERN);
         Matcher matcher = pattern.matcher(ip);
         return matcher.matches();
     }
 
+    /**
+     * Handles the user's id field. When a value is submitted, this method is called to retrieve the value
+     * This method also hides the server settings box once valid input is granted.* 
+     */
+    
     private void getUserId() {
         if (userIdField.getText() != null) {
             userId = userIdField.getText();
-            if (userId.length() > 3)
-                userId = userId.substring(0, 3);
+//            if (userId.length() > 3)
+//                userId = userId.substring(0, 3);
 
             userIdField.setDisable(true);
             getUserIdButton.setDisable(true);
             outgoing.setDisable(false);
             sendButton.setDisable(false);
             outgoing.requestFocus();
+            
+            //Do a thing where we update our own names
 
             center.getChildren().removeAll(serverSettingsBox);
-            setUpNetworking();
         }
     }
 
+    /**
+     * This method sets up the connection between the Server and the client
+     * Upon a successful connection, it sends the username to the server prefaced with `
+     * e.x. "`Jon"
+     * to be added to the server's list of online users.
+     */
     private void setUpNetworking() {
         System.out.println("Setting up networking");
         try {
@@ -261,6 +285,7 @@ public class ClientFX extends Application {
             isReader = new InputStreamReader(sock.getInputStream());
             reader = new BufferedReader(isReader);
             writer = new PrintWriter(sock.getOutputStream());
+            writer.println("`" + userId);
 
             alert.setText("Connected");
             System.out.println("Setup Success");
@@ -275,6 +300,16 @@ public class ClientFX extends Application {
         }
     }
 
+    /**
+     * TBH i have no idea what these two classes do. They let me run the listener and the message sender at the same 
+     * * time, which is a pain with JavaFX
+     * Beyond that, idk.
+     * 
+     * ListenTask's call() method is where the actual reading lines in happens - I think check for special messages 
+     * * and or escaped shit there*
+     * 
+     * Might be better to look for the serialized list of onlineUsers in the ListenTimerTask but idek* *
+     */
     public class ListenTimerTask extends TimerTask {
         @Override
         public void run() {
@@ -305,6 +340,11 @@ public class ClientFX extends Application {
         }
     }
 
+
+    /**
+     * This message is called when a message is sent through the UI
+     * It sends the line to the server, then prepares to send a new message*
+     */
     public void sendMessage() {
         writer.println(userId + ": " + outgoing.getText());
         writer.flush();

@@ -20,6 +20,8 @@ public class Server {
 
     public static final int portNo = 42069;
     ArrayList<PrintWriter> clientOutputStreams;
+    ArrayList<String> nicknames;
+
 
     public class ClientHandler implements Runnable {
 
@@ -40,7 +42,11 @@ public class Server {
             String message;
             try {
                 while ((message = reader.readLine()) != null) {
-                    tellEveryone(message);
+                    if (message.substring(0, 1).equals("`")) {
+                        nicknames.add(message.substring(1));
+                    } else {
+                        tellEveryone(message);
+                    }
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -60,6 +66,7 @@ public class Server {
 
     public void go() {
         clientOutputStreams = new ArrayList<PrintWriter>();
+        nicknames = new ArrayList<>();
         try {
             clientOutputStreams.add(new PrintWriter("myfile.txt"));
         } catch (FileNotFoundException e) {
@@ -83,6 +90,7 @@ public class Server {
 
     public void tellEveryone(String message) {
 //        System.out.println("There are " + clientOutputStreams.size() + " clients online");
+        System.out.println("Users online: " + nicknames);
         for (int i = 0; i < clientOutputStreams.size(); i++) {
             try {
                 PrintWriter writer = clientOutputStreams.get(i);
